@@ -1,0 +1,3685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pareto Life System</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+
+/* ======================================== */
+/* COMPREHENSIVE LAYOUT & SIZING FIXES */
+/* ======================================== */
+
+/* Sidebar: Fixed width, proper spacing */
+.left-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    width: 520px;
+}
+
+/* All widgets: Prevent overflow */
+.widget {
+    overflow: hidden;
+    width: 100%;
+}
+
+/* Calendar Widget: Contained content */
+.calendar-widget {
+    min-height: auto;
+    height: fit-content;
+    max-height: 600px;
+    display: flex;
+    flex-direction: column;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.6rem;
+    margin-top: 1.5rem;
+    width: 100%;
+    padding: 0 0.5rem;
+}
+
+.calendar-day {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.75rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    min-height: 40px;
+    max-height: 55px;
+}
+
+.calendar-day-header {
+    text-align: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary) !important;
+    padding: 0.5rem 0;
+}
+
+/* Voice Widget: Compact */
+.voice-widget {
+    min-height: auto;
+    height: fit-content;
+}
+
+.voice-orb-container {
+    padding: 1.5rem 0;
+}
+
+/* Energy Widget: Compact */
+.energy-widget {
+    min-height: auto;
+    height: fit-content;
+}
+
+.energy-slider-container {
+    padding: 1rem 0;
+}
+
+/* Balance Widget: Compact */
+.balance-widget {
+    min-height: auto;
+    height: fit-content;
+}
+
+/* Task widget: Proper height */
+.task-widget {
+    min-height: 400px;
+    max-height: 600px;
+    display: flex;
+    flex-direction: column;
+}
+
+.task-list {
+    overflow-y: auto;
+    flex: 1;
+}
+
+/* Meal widget: Compact */
+.meal-widget {
+    height: fit-content;
+}
+
+/* Pareto chart widget: Compact */
+.pareto-widget {
+    height: fit-content;
+    min-height: auto;
+}
+
+/* Stats grid: Proper sizing */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+/* Pareto Life System - Kimi Agent Style */
+/* Matches screenshots exactly */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap');
+
+/* ========================================
+   RESET & BASE
+======================================== */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  /* Colors from Kimi screenshots */
+  --bg-primary: #0f1729;
+  --bg-secondary: #1a1f3a;
+  --bg-tertiary: #2d1b4e;
+  
+  --card-bg: rgba(255, 255, 255, 0.05);
+  --card-border: rgba(255, 255, 255, 0.1);
+  --card-hover: rgba(255, 255, 255, 0.08);
+  
+  --purple: #8b5cf6;
+  --purple-light: #a78bfa;
+  --purple-dark: #7c3aed;
+  
+  --teal: #14b8a6;
+  --green: #10b981;
+  --amber: #f59e0b;
+  --coral: #ef4444;
+  
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --text-tertiary: rgba(255, 255, 255, 0.5);
+  
+  --font-primary: 'Inter', sans-serif;
+  --font-heading: 'Poppins', sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-primary);
+  background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-tertiary) 100%);
+  background-attachment: fixed;
+  color: var(--text-primary);
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+/* ========================================
+   BACKGROUND EFFECTS
+======================================== */
+
+.nebula-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.nebula-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: 0.3;
+  animation: nebulaFloat 20s ease-in-out infinite;
+}
+
+.nebula-blob-1 {
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, var(--purple) 0%, transparent 70%);
+  top: -200px;
+  right: -100px;
+}
+
+.nebula-blob-2 {
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, var(--teal) 0%, transparent 70%);
+  bottom: -150px;
+  left: -100px;
+  animation-delay: -7s;
+}
+
+.nebula-blob-3 {
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, var(--coral) 0%, transparent 70%);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation-delay: -14s;
+}
+
+@keyframes nebulaFloat {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(30px, -30px) scale(1.1); }
+  50% { transform: translate(-20px, 20px) scale(0.95); }
+  75% { transform: translate(-30px, -20px) scale(1.05); }
+}
+
+.grain-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+/* ========================================
+   APP CONTAINER
+======================================== */
+
+.app-container {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 2rem;
+  position: relative;
+  z-index: 2;
+}
+
+/* ========================================
+   HEADER
+======================================== */
+
+.app-header {
+  margin-bottom: 2rem;
+  animation: fadeIn 0.6s ease-out;
+}
+
+.greeting {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.greeting-icon {
+  font-size: 2rem;
+  filter: drop-shadow(0 4px 12px rgba(139, 92, 246, 0.4));
+}
+
+.greeting-text {
+  font-family: var(--font-heading);
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.date-text {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin-left: 2.75rem;
+}
+
+/* ========================================
+   MAIN GRID
+======================================== */
+
+.main-grid {
+  display: grid;
+  grid-template-columns: 520px 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+/* ========================================
+   SIDEBAR
+======================================== */
+
+.left-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ========================================
+   MAIN CONTENT
+======================================== */
+
+.main-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ========================================
+   WIDGET CARDS
+======================================== */
+
+.widget {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 1.5rem;
+  padding: 2rem;
+  transition: all 0.3s ease;
+  animation: fadeInUp 0.6s ease-out backwards;
+}
+
+.widget:hover {
+  background: var(--card-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+}
+
+.widget-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.widget-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.widget-icon {
+  font-size: 1.5rem;
+}
+
+.widget-title h2 {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.widget-subtitle {
+  font-size: 0.95rem;
+  color: var(--text-tertiary);
+  margin-bottom: 1.5rem;
+}
+
+/* ========================================
+   CALENDAR
+======================================== */
+
+.calendar-widget {
+  min-height: 600px;
+}
+
+.calendar-nav {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.nav-btn {
+  background: transparent;
+  border: 1px solid var(--card-border);
+  color: var(--text-primary);
+  width: 36px;
+  height: 36px;
+  border-radius: 0.5rem;
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-btn:hover {
+  background: rgba(139, 92, 246, 0.2);
+  border-color: var(--purple);
+}
+
+.month-year {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  min-width: 140px;
+  text-align: center;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.6rem;
+    margin-top: 1.5rem;
+    width: 100%;
+    padding: 0 0.5rem;
+}
+
+.calendar-day-header {
+  text-align: center;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  padding: 1rem 0;
+  text-transform: capitalize;
+  letter-spacing: 0;
+}
+
+.calendar-day {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.75rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    min-height: 40px;
+    max-height: 55px;
+}
+
+.calendar-day:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.calendar-day.today {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  font-weight: 700;
+  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.5);
+  border-radius: 1.25rem;
+}
+
+.calendar-day.other-month {
+  opacity: 0.25;
+  pointer-events: none;
+  background: transparent;
+}
+
+.calendar-day.has-tasks {
+  position: relative;
+}
+
+.calendar-day.has-tasks .task-dots {
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 3px;
+}
+
+.task-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+/* ========================================
+   VOICE ASSISTANT
+======================================== */
+
+.voice-orb-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 0;
+}
+
+.voice-orb {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--purple) 0%, var(--teal) 100%);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 32px rgba(139, 92, 246, 0.4);
+  position: relative;
+}
+
+.voice-orb::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--purple) 0%, var(--teal) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: -1;
+  filter: blur(20px);
+}
+
+.voice-orb:hover {
+  transform: scale(1.05);
+  box-shadow: 0 12px 48px rgba(139, 92, 246, 0.6);
+}
+
+.voice-orb:hover::before {
+  opacity: 0.7;
+}
+
+.voice-orb.listening {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.voice-status {
+  margin-top: 1.5rem;
+  font-size: 1rem;
+  color: var(--text-secondary);
+}
+
+.voice-suggestions {
+  margin-top: 2rem;
+}
+
+.suggestions-label {
+  font-size: 0.875rem;
+  color: var(--text-tertiary);
+  margin-bottom: 0.75rem;
+}
+
+.suggestion-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 0.75rem;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 0.5rem;
+}
+
+.suggestion-btn:hover {
+  background: rgba(139, 92, 246, 0.2);
+  border-color: var(--purple);
+  transform: translateX(4px);
+}
+
+.suggestion-icon {
+  font-size: 1.25rem;
+}
+
+/* ========================================
+   ENERGY CHECK-IN
+======================================== */
+
+.energy-slider-container {
+  padding: 1rem 0;
+}
+
+.energy-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.energy-slider {
+  width: 100%;
+  height: 8px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: linear-gradient(90deg, 
+    var(--coral) 0%, 
+    var(--amber) 25%, 
+    var(--green) 50%, 
+    var(--teal) 75%, 
+    var(--purple) 100%
+  );
+  border-radius: 10px;
+  outline: none;
+  cursor: pointer;
+}
+
+.energy-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, var(--purple) 0%, var(--teal) 100%);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.5);
+  transition: all 0.2s ease;
+}
+
+.energy-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.7);
+}
+
+.energy-slider::-moz-range-thumb {
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, var(--purple) 0%, var(--teal) 100%);
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.5);
+}
+
+.energy-value {
+  text-align: center;
+  margin-top: 1.5rem;
+  font-size: 2.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--purple) 0%, var(--teal) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ========================================
+   TASKS
+======================================== */
+
+.add-task-btn {
+  background: linear-gradient(135deg, var(--purple) 0%, var(--purple-dark) 100%);
+  color: white;
+  border: none;
+  padding: 0.625rem 1.25rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+}
+
+.add-task-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.5);
+}
+
+.task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  min-height: 200px;
+}
+
+.task-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-left: 4px solid;
+  border-radius: 0.75rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.task-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  transform: translateX(4px);
+}
+
+.task-item.priority-high {
+  border-left-color: var(--green);
+}
+
+.task-item.priority-medium {
+  border-left-color: var(--amber);
+}
+
+.task-item.priority-low {
+  border-left-color: var(--coral);
+}
+
+.task-item.completed {
+  opacity: 0.5;
+}
+
+.task-item.completed .task-name {
+  text-decoration: line-through;
+}
+
+.task-checkbox {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--card-border);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.task-item.completed .task-checkbox {
+  background: var(--green);
+  border-color: var(--green);
+  position: relative;
+}
+
+.task-item.completed .task-checkbox::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.task-content {
+  flex: 1;
+}
+
+.task-name {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 0.375rem;
+}
+
+.task-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--text-tertiary);
+}
+
+.task-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.task-completion {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 1rem;
+  border-top: 1px solid var(--card-border);
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.completion-percent {
+  font-weight: 600;
+  color: var(--teal);
+}
+
+/* ========================================
+   MEALS
+======================================== */
+
+.view-all-btn {
+  background: transparent;
+  color: var(--purple);
+  border: none;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.view-all-btn:hover {
+  color: var(--purple-light);
+  transform: translateX(4px);
+}
+
+.nutrition-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.nutrition-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--card-border);
+  border-radius: 1rem;
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.nutrition-icon {
+  font-size: 2rem;
+}
+
+.nutrition-icon.protein {
+  color: var(--green);
+  font-size: 1.5rem;
+}
+
+.nutrition-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--purple) 0%, var(--teal) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.nutrition-label {
+  font-size: 0.875rem;
+  color: var(--text-tertiary);
+}
+
+.section-label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+}
+
+.meal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.meal-card {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--card-border);
+  border-radius: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.meal-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.meal-image {
+  width: 80px;
+  height: 80px;
+  border-radius: 0.75rem;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.meal-info {
+  flex: 1;
+}
+
+.meal-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.375rem;
+}
+
+.meal-details {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.875rem;
+  color: var(--text-tertiary);
+  margin-bottom: 0.5rem;
+}
+
+.meal-tags {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.meal-tag {
+  padding: 0.25rem 0.625rem;
+  background: rgba(139, 92, 246, 0.2);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--purple-light);
+  font-weight: 500;
+}
+
+/* ========================================
+   BALANCE
+======================================== */
+
+.balance-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.balance-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.balance-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.balance-item.stretch {
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.balance-label {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.balance-value {
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* ========================================
+   MODALS
+======================================== */
+
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal.active {
+  display: flex;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.modal-content {
+  background: var(--bg-secondary);
+  border: 1px solid var(--card-border);
+  border-radius: 1.5rem;
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.modal-header h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.modal-close {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+}
+
+.modal-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+}
+
+.modal-body {
+  padding: 2rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.modal-input,
+.modal-select {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--card-border);
+  border-radius: 0.75rem;
+  color: var(--text-primary);
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.modal-input:focus,
+.modal-select:focus {
+  outline: none;
+  border-color: var(--purple);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.modal-select option {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--purple) 0%, var(--purple-dark) 100%);
+  color: white;
+  border: none;
+  padding: 1rem 1.5rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.5);
+}
+
+.btn-primary.full-width {
+  width: 100%;
+}
+
+/* AI Suggestion */
+.ai-suggestion {
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  margin: 1rem 0;
+}
+
+.ai-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  color: var(--purple-light);
+}
+
+.ai-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ai-detail {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+}
+
+.detail-label {
+  color: var(--text-tertiary);
+}
+
+.detail-value {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* ========================================
+   ANIMATIONS
+======================================== */
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ========================================
+   RESPONSIVE
+======================================== */
+
+@media (max-width: 1200px) {
+  .main-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .left-sidebar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-container {
+    padding: 1rem;
+  }
+  
+  .left-sidebar {
+    grid-template-columns: 1fr;
+  }
+  
+  .greeting-text {
+    font-size: 1.5rem;
+  }
+  
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .nutrition-summary {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ========================================
+   UTILITIES
+======================================== */
+
+.pareto-title {
+  background: linear-gradient(135deg, var(--purple) 0%, var(--teal) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ========================================
+   PARETO CHART WIDGET
+======================================== */
+
+.pareto-chart-widget {
+  text-align: center;
+}
+
+.pareto-chart-container {
+  max-width: 300px;
+  margin: 2rem auto;
+}
+
+.pareto-legend {
+  margin: 1.5rem 0;
+}
+
+.legend-row {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.legend-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+}
+
+.needs-legend {
+  background: #10b981;
+}
+
+.wants-legend {
+  background: #f59e0b;
+}
+
+.legend-text {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.pareto-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.pareto-stat-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--card-border);
+  border-radius: 1rem;
+  padding: 1.5rem 1rem;
+}
+
+.stat-number {
+  font-size: 2.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #7F56D9 0%, #14B8A6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.5rem;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: var(--text-tertiary);
+}
+
+/* ========================================
+   VOICE ORB SVG ICON
+======================================== */
+
+.voice-orb svg {
+  color: white;
+}
+
+.voice-orb.listening svg {
+  animation: micPulse 1.5s ease-in-out infinite;
+}
+
+.voice-option {
+  font-size: 0.875rem;
+  color: var(--text-tertiary);
+  margin-top: 0.5rem;
+}
+
+@keyframes micPulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* ========================================
+   MEAL IMAGE
+======================================== */
+
+.meal-image {
+  width: 80px;
+  height: 80px;
+  border-radius: 0.75rem;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+
+/* ========================================
+   RIPPLE ANIMATION FOR VOICE ORB
+======================================== */
+
+.voice-orb {
+  position: relative;
+}
+
+.voice-orb::before {
+  content: '';
+  position: absolute;
+  inset: -20px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.4) 0%, transparent 70%);
+  opacity: 0;
+  animation: none;
+}
+
+.voice-orb.listening::before {
+  animation: ripple 2s ease-out infinite;
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0.8);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+.voice-orb.listening::after {
+  content: '';
+  position: absolute;
+  inset: -30px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(20, 184, 166, 0.3) 0%, transparent 70%);
+  animation: ripple 2s ease-out infinite 0.5s;
+}
+
+/* ========================================
+   TASK DELETE BUTTON
+======================================== */
+
+.task-delete-btn {
+  background: transparent;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.2s ease;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+}
+
+.task-item:hover .task-delete-btn {
+  opacity: 0.6;
+}
+
+.task-delete-btn:hover {
+  opacity: 1 !important;
+  background: rgba(239, 68, 68, 0.2);
+}
+
+.task-content {
+  cursor: pointer;
+}
+
+.task-content:hover {
+  opacity: 0.8;
+}
+
+
+/* ========================================
+   MEAL PLANNER MODAL (KIMI STYLE)
+======================================== */
+
+.meal-planner-modal .meal-planner-content {
+  background: var(--bg-secondary);
+  border: 1px solid var(--card-border);
+  border-radius: 0;
+  max-width: 100%;
+  width: 100%;
+  height: 100vh;
+  max-height: 100vh;
+  overflow-y: auto;
+  margin: 0;
+  animation: none;
+}
+
+.meal-planner-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2rem 3rem;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.meal-planner-header h2 {
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+.meal-planner-subtitle {
+  padding: 0 3rem 1rem;
+  color: var(--text-tertiary);
+}
+
+/* Week Tabs */
+.week-tabs {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1.5rem 3rem;
+  overflow-x: auto;
+}
+
+.week-tab {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--card-border);
+  border-radius: 0.75rem;
+  padding: 1rem 1.5rem;
+  min-width: 80px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.week-tab:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.week-tab.active {
+  background: linear-gradient(135deg, var(--purple) 0%, var(--purple-dark) 100%);
+  border-color: var(--purple);
+}
+
+.tab-day {
+  font-size: 0.875rem;
+  color: var(--text-tertiary);
+  margin-bottom: 0.25rem;
+}
+
+.week-tab.active .tab-day {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.tab-date {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* Meal Planner Grid */
+.meal-planner-grid {
+  display: grid;
+  grid-template-columns: 400px 1fr;
+  gap: 2rem;
+  padding: 2rem 3rem;
+  min-height: calc(100vh - 300px);
+}
+
+/* Day's Meals Sidebar */
+.day-meals-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.day-meals-sidebar h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.meal-slot {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--card-border);
+  border-radius: 1rem;
+  padding: 1.25rem;
+  transition: all 0.2s ease;
+}
+
+.meal-slot.selecting {
+  border-color: var(--purple);
+  background: rgba(139, 92, 246, 0.1);
+}
+
+.meal-slot-header {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 0.75rem;
+}
+
+.add-meal-slot {
+  width: 100%;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px dashed var(--card-border);
+  border-radius: 0.75rem;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.95rem;
+}
+
+.add-meal-slot:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--purple);
+  color: var(--purple-light);
+}
+
+.selected-meal-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+/* Daily Nutrition Box */
+.daily-nutrition-box {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--card-border);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  margin-top: 1rem;
+}
+
+.daily-nutrition-box h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.nutrition-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 0.95rem;
+}
+
+.nutrition-row:last-child {
+  border-bottom: none;
+}
+
+.macro-boxes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.macro-box {
+  background: rgba(139, 92, 246, 0.1);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  text-align: center;
+}
+
+.macro-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--purple-light);
+}
+
+.macro-name {
+  font-size: 0.875rem;
+  color: var(--text-tertiary);
+  margin-top: 0.25rem;
+}
+
+/* Available Meals Grid */
+.available-meals-grid {
+  display: flex;
+  flex-direction: column;
+}
+
+.meal-search-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--card-border);
+  border-radius: 0.75rem;
+  color: white;
+  font-size: 1rem;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--purple);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.meal-filter-buttons {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  padding: 0.625rem 1.25rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--card-border);
+  border-radius: 0.75rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.filter-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.filter-btn.active {
+  background: var(--purple);
+  border-color: var(--purple);
+  color: white;
+}
+
+/* Meals Grid */
+.meals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.kimi-meal-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--card-border);
+  border-radius: 1rem;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.kimi-meal-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+  border-color: var(--purple);
+}
+
+.kimi-meal-image {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+}
+
+.kimi-meal-info {
+  padding: 1.25rem;
+}
+
+.kimi-meal-tags {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
+
+.kimi-tag {
+  padding: 0.25rem 0.625rem;
+  background: rgba(139, 92, 246, 0.2);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--purple-light);
+  font-weight: 500;
+}
+
+.kimi-meal-name {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.kimi-meal-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-tertiary);
+  margin-bottom: 0.75rem;
+}
+
+.kimi-meal-macros {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.macro-item {
+  color: var(--text-tertiary);
+}
+
+.kimi-add-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--purple);
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+}
+
+.kimi-add-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.6);
+}
+
+
+/* ========================================
+   REFRESH MENU BUTTON
+======================================== */
+
+.refresh-menu-btn {
+  background: rgba(20, 184, 166, 0.2);
+  color: var(--teal);
+  border: 1px solid rgba(20, 184, 166, 0.3);
+  padding: 0.625rem 1rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.refresh-menu-btn:hover {
+  background: rgba(20, 184, 166, 0.3);
+  border-color: var(--teal);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
+}
+
+.widget-header > div:last-child {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+
+/* ========================================
+   CATEGORY TAG STYLING
+======================================== */
+
+.category-tag {
+  background: rgba(20, 184, 166, 0.3) !important;
+  border: 1px solid rgba(20, 184, 166, 0.5) !important;
+  color: #5EEAD4 !important;
+  font-weight: 600 !important;
+}
+
+
+/* ========================================
+   ADJUSTABLE BALANCE SLIDERS
+======================================== */
+
+.balance-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.balance-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.balance-value-display {
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.balance-slider {
+  width: 100%;
+  height: 6px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: linear-gradient(90deg, 
+    var(--coral) 0%, 
+    var(--amber) 33%, 
+    var(--green) 66%, 
+    var(--teal) 100%
+  );
+  border-radius: 10px;
+  outline: none;
+  cursor: pointer;
+  margin: 0.5rem 0;
+}
+
+.balance-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 24px;
+  height: 24px;
+  background: linear-gradient(135deg, var(--purple) 0%, var(--teal) 100%);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.5);
+  transition: all 0.2s ease;
+}
+
+.balance-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.7);
+}
+
+.balance-slider::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  background: linear-gradient(135deg, var(--purple) 0%, var(--teal) 100%);
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.5);
+}
+
+/* Remove old input styles */
+.balance-input-group,
+.balance-input,
+.balance-target {
+  display: none;
+}
+
+/* Notification animations */
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+}
+
+
+/* Image loading improvements */
+.meal-image, .kimi-meal-image, .planned-meal-img {
+    opacity: 0;
+    transition: opacity 0.3s ease-in;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.meal-image[src], .kimi-meal-image[src], .planned-meal-img[src] {
+    opacity: 1;
+}
+
+/* Ensure images display */
+img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+
+
+/* ======================================== */
+/* WIDGET ALIGNMENT FIXES */
+/* ======================================== */
+
+/* Fix widget title alignment - icon and text on left */
+.voice-widget .widget-header,
+.energy-widget .widget-header,
+.balance-widget .widget-header {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.voice-widget .widget-header .widget-icon,
+.energy-widget .widget-header .widget-icon,
+.balance-widget .widget-header .widget-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.voice-widget .widget-header h2,
+.energy-widget .widget-header h2,
+.balance-widget .widget-header h2 {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+/* Make sidebar widgets consistent width */
+.left-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    width: 520px;
+}
+
+.left-sidebar .widget {
+    width: 100%;
+}
+
+/* Consistent spacing for all widgets */
+.energy-widget,
+.voice-widget,
+.balance-widget {
+    padding: 1.5rem;
+}
+
+/* Fix day tabs and calendar text color to match body text (grey) */
+.day-tab {
+    color: var(--text-secondary) !important;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.day-tab.active {
+    color: var(--text-primary) !important;
+    background: var(--purple);
+    border-color: var(--purple);
+}
+
+/* Ensure calendar day headers are also grey */
+.calendar-day-header {
+    color: var(--text-secondary) !important;
+}
+
+.day-tab.active {
+    color: var(--text-primary) !important;
+}
+    </style>
+</head>
+<body>
+    <!-- Background -->
+    <div class="nebula-bg">
+        <div class="nebula-blob nebula-blob-1"></div>
+        <div class="nebula-blob nebula-blob-2"></div>
+        <div class="nebula-blob nebula-blob-3"></div>
+    </div>
+    <div class="grain-overlay"></div>
+
+    <!-- Main Container -->
+    <div class="app-container">
+        
+        <!-- Header -->
+        <header class="app-header">
+            <div class="greeting">
+                <span class="greeting-icon" id="greetingIcon">☁️</span>
+                <h1 class="greeting-text" id="greetingText">Good evening, Jason</h1>
+            </div>
+            <p class="date-text" id="dateText">Thursday, February 5, 2026 • 1/6 tasks completed</p>
+        </header>
+
+        <!-- Main Grid -->
+        <div class="main-grid">
+            
+            <!-- Left Sidebar -->
+            <aside class="left-sidebar">
+                
+                <!-- Calendar Widget -->
+                <section class="widget calendar-widget">
+                    <div class="widget-header">
+                        <div class="widget-title">
+                            <span class="widget-icon">📅</span>
+                            <h2>Calendar</h2>
+                        </div>
+                        <div class="calendar-nav">
+                            <button class="nav-btn" onclick="changeMonth(-1)">‹</button>
+                            <span class="month-year" id="monthYear">February 2026</span>
+                            <button class="nav-btn" onclick="changeMonth(1)">›</button>
+                        </div>
+                    </div>
+                    <p class="widget-subtitle">Plan and track your high-impact activities</p>
+                    
+                    <div class="calendar-grid" id="calendarGrid">
+                        <!-- Calendar generated by JavaScript -->
+                    </div>
+                </section>
+
+                <!-- Voice Assistant -->
+                <section class="widget voice-widget">
+                    <div class="widget-header">
+                        <span class="widget-icon">🎤</span>
+                        <h2>Voice Assistant</h2>
+                    </div>
+                    <p class="widget-subtitle">Tap the orb and speak, or type your command below</p>
+                    
+                    <div class="voice-orb-container">
+                        <button class="voice-orb" onclick="activateVoice()" id="voiceOrbBtn">
+                            <svg class="orb-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                                <line x1="12" y1="19" x2="12" y2="23"></line>
+                                <line x1="8" y1="23" x2="16" y2="23"></line>
+                                <line x1="2" y1="2" x2="22" y2="22" stroke-width="2"></line>
+                            </svg>
+                        </button>
+                        <p class="voice-status" id="voiceStatus">Tap the orb to speak</p>
+                        <p class="voice-option">⌨️ Or type instead</p>
+                    </div>
+
+                    <div class="voice-suggestions">
+                        <p class="suggestions-label">Try saying:</p>
+                        <button class="suggestion-btn" onclick="runCommand('plan my day')">
+                            <span class="suggestion-icon">📅</span>
+                            Plan my day
+                        </button>
+                        <button class="suggestion-btn" onclick="runCommand('what is for lunch')">
+                            <span class="suggestion-icon">🍽️</span>
+                            What's for lunch?
+                        </button>
+                        <button class="suggestion-btn" onclick="runCommand('prioritize tasks')">
+                            <span class="suggestion-icon">✨</span>
+                            Prioritize tasks
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Energy Check-In -->
+                <section class="widget energy-widget">
+                    <div class="widget-header">
+                        <span class="widget-icon" id="energyIcon">☀️</span>
+                        <h2>Energy Check-In</h2>
+                    </div>
+                    <p class="widget-subtitle">How's your energy right now?</p>
+                    
+                    <div class="energy-slider-container">
+                        <div class="energy-labels">
+                            <span>😴 Low</span>
+                            <span>🚀 High</span>
+                        </div>
+                        <input type="range" class="energy-slider" id="energySlider" min="1" max="10" value="7" oninput="updateEnergy(this.value)">
+                        <div class="energy-value" id="energyValue">7</div>
+                    </div>
+                </section>
+
+                <!-- Pareto Principle Chart -->
+                <section class="widget pareto-chart-widget">
+                    <div class="widget-header">
+                        <div class="widget-title">
+                            <span class="widget-icon">📊</span>
+                            <h2 class="pareto-title">Pareto Principle (80/20)</h2>
+                        </div>
+                    </div>
+                    
+                    <div class="pareto-chart-container">
+                        <canvas id="paretoDonutChart" width="300" height="300"></canvas>
+                    </div>
+
+                    <div class="pareto-legend">
+                        <div class="legend-row">
+                            <div class="legend-item">
+                                <span class="legend-color needs-legend"></span>
+                                <span class="legend-text">Needs (80%)</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color wants-legend"></span>
+                                <span class="legend-text">Wants (20%)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pareto-stats-grid">
+                        <div class="pareto-stat-card">
+                            <div class="stat-number" id="needHoursChart">2.0</div>
+                            <div class="stat-label">Need Hours</div>
+                        </div>
+                        <div class="pareto-stat-card">
+                            <div class="stat-number" id="wantHoursChart">1.0</div>
+                            <div class="stat-label">Want Hours</div>
+                        </div>
+                    </div>
+                </section>
+
+            </aside>
+
+            <!-- Main Content -->
+            <main class="main-content">
+                
+                <!-- Tasks -->
+                <section class="widget tasks-widget">
+                    <div class="widget-header">
+                        <div class="widget-title">
+                            <span class="widget-icon">✅</span>
+                            <h2 id="todayLabel">Thursday</h2>
+                        </div>
+                        <button class="add-task-btn" onclick="openAddTask()">+ Add Task</button>
+                    </div>
+                    <p class="widget-subtitle" id="todayDate">February 5, 2026</p>
+
+                    <div class="task-list" id="taskList">
+                        <!-- Tasks rendered here -->
+                    </div>
+
+                    <div class="task-completion">
+                        <span id="taskProgress">1 of 5 completed</span>
+                        <span class="completion-percent" id="completionPercent">20%</span>
+                    </div>
+                </section>
+
+                <!-- Meals -->
+                <section class="widget meals-widget">
+                    <div class="widget-header">
+                        <div class="widget-title">
+                            <span class="widget-icon">🍽️</span>
+                            <h2>Today's Meals</h2>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="refresh-menu-btn" onclick="refreshMealMenu()" title="Refresh menu from Kimi">
+                                🔄 Refresh Menu
+                            </button>
+                            <button class="view-all-btn" onclick="openMealPlanner()">View All ›</button>
+                        </div>
+                    </div>
+                    <p class="widget-subtitle">Thursday, Feb 5</p>
+
+                    <div class="nutrition-summary">
+                        <div class="nutrition-card">
+                            <span class="nutrition-icon">🔥</span>
+                            <div class="nutrition-info">
+                                <div class="nutrition-value" id="totalCalories">0</div>
+                                <div class="nutrition-label">/ 2000 kcal</div>
+                            </div>
+                        </div>
+                        <div class="nutrition-card">
+                            <span class="nutrition-icon protein">●</span>
+                            <div class="nutrition-info">
+                                <div class="nutrition-value" id="totalProtein">0g</div>
+                                <div class="nutrition-label">/ 120g goal</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="suggested-meals">
+                        <h3 class="section-label">Suggested Meals</h3>
+                        <div class="meal-list" id="mealList">
+                            <!-- Meals rendered here -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Balance -->
+                <section class="widget balance-widget">
+                    <div class="widget-header">
+                        <span class="widget-icon">⚖️</span>
+                        <h2>Today's Balance</h2>
+                    </div>
+
+                    <div class="balance-grid">
+                        <div class="balance-item sleep">
+                            <div class="balance-header">
+                                <span class="balance-label">Sleep</span>
+                                <span class="balance-value-display" id="sleepDisplay">0.0 / 8.0 hours</span>
+                            </div>
+                            <input type="range" class="balance-slider" id="sleepSlider" min="0" max="12" step="0.5" value="0" oninput="updateBalanceSlider('sleep', this.value, 8.0)">
+                        </div>
+                        
+                        <div class="balance-item rest">
+                            <div class="balance-header">
+                                <span class="balance-label">Rest</span>
+                                <span class="balance-value-display" id="restDisplay">0.0 / 3.0 hours</span>
+                            </div>
+                            <input type="range" class="balance-slider" id="restSlider" min="0" max="8" step="0.5" value="0" oninput="updateBalanceSlider('rest', this.value, 3.0)">
+                        </div>
+                        
+                        <div class="balance-item needs">
+                            <div class="balance-header">
+                                <span class="balance-label">Needs</span>
+                                <span class="balance-value-display" id="needsDisplay">0.0 / 12.8 hours</span>
+                            </div>
+                            <input type="range" class="balance-slider" id="needsSlider" min="0" max="16" step="0.5" value="0" oninput="updateBalanceSlider('needs', this.value, 12.8)">
+                        </div>
+                        
+                        <div class="balance-item wants">
+                            <div class="balance-header">
+                                <span class="balance-label">Wants</span>
+                                <span class="balance-value-display" id="wantsDisplay">0.0 / 3.2 hours</span>
+                            </div>
+                            <input type="range" class="balance-slider" id="wantsSlider" min="0" max="8" step="0.5" value="0" oninput="updateBalanceSlider('wants', this.value, 3.2)">
+                        </div>
+                        
+                        <div class="balance-item stretch">
+                            <span class="balance-label">⏰ Stretch Reminder</span>
+                            <span class="balance-value">Every 2 hours</span>
+                        </div>
+                    </div>
+                </section>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- Task Modal -->
+    <div class="modal" id="taskModal" style="display: none;" onclick="if(event.target === this) closeAddTask()">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add Task</h2>
+                <button class="modal-close" onclick="closeAddTask()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Task Description</label>
+                    <input type="text" id="taskInput" placeholder="What needs to be done?" class="modal-input">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select id="taskCategory" class="modal-select">
+                            <option value="Work">Work</option>
+                            <option value="Personal">Personal</option>
+                            <option value="Health">Health</option>
+                            <option value="Learning">Learning</option>
+                            <option value="Social">Social</option>
+                            <option value="Errands">Errands</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Priority</label>
+                        <select id="taskPriority" class="modal-select">
+                            <option value="high">High</option>
+                            <option value="medium">Medium</option>
+                            <option value="low">Low</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Type</label>
+                        <select id="taskType" class="modal-select">
+                            <option value="need">Need (80%)</option>
+                            <option value="want">Want (20%)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Duration (min)</label>
+                        <input type="number" id="taskDuration" class="modal-input" value="30" min="5" step="5">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Time</label>
+                    <input type="time" id="taskTime" class="modal-input">
+                </div>
+
+                <button class="btn-primary full-width" onclick="saveNewTask()">Add Task</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Meal Planner Modal (Full Screen like Kimi) -->
+    <div class="modal meal-planner-modal" id="mealPlannerModal" style="display: none;" onclick="if(event.target === this) closeMealPlanner()">
+        <div class="meal-planner-content">
+            <div class="meal-planner-header">
+                <h2>🍽 Meal Planner</h2>
+                <button class="modal-close" onclick="closeMealPlanner()">×</button>
+            </div>
+            <p class="meal-planner-subtitle">Plan nutritious meals for optimal energy</p>
+            
+            <!-- Week Tabs -->
+            <div class="week-tabs" id="weekTabs">
+                <!-- Generated by JS -->
+            </div>
+
+            <div class="meal-planner-grid">
+                <!-- Left: Day's Meals -->
+                <div class="day-meals-sidebar">
+                    <h3>Tuesday's Meals</h3>
+                    
+                    <div class="meal-slot">
+                        <div class="meal-slot-header">🌅 Breakfast</div>
+                        <button class="add-meal-slot" onclick="selectMealType('breakfast')">+ Add breakfast</button>
+                        <div id="selectedBreakfast"></div>
+                    </div>
+
+                    <div class="meal-slot">
+                        <div class="meal-slot-header">☀️ Lunch</div>
+                        <button class="add-meal-slot" onclick="selectMealType('lunch')">+ Add lunch</button>
+                        <div id="selectedLunch"></div>
+                    </div>
+
+                    <div class="meal-slot">
+                        <div class="meal-slot-header">🌙 Dinner</div>
+                        <button class="add-meal-slot" onclick="selectMealType('dinner')">+ Add dinner</button>
+                        <div id="selectedDinner"></div>
+                    </div>
+
+                    <div class="meal-slot">
+                        <div class="meal-slot-header">🍎 Snack</div>
+                        <button class="add-meal-slot" onclick="selectMealType('snack')">+ Add snack</button>
+                        <div id="selectedSnack"></div>
+                    </div>
+
+                    <!-- Daily Nutrition -->
+                    <div class="daily-nutrition-box">
+                        <h4>Daily Nutrition</h4>
+                        <div class="nutrition-row">
+                            <span>Calories</span>
+                            <span id="plannerCalories">0 / 2000</span>
+                        </div>
+                        <div class="nutrition-row">
+                            <span>Protein</span>
+                            <span id="plannerProtein">0g / 120g</span>
+                        </div>
+                        <div class="macro-boxes">
+                            <div class="macro-box">
+                                <div class="macro-value">0g</div>
+                                <div class="macro-name">Carbs</div>
+                            </div>
+                            <div class="macro-box">
+                                <div class="macro-value">0g</div>
+                                <div class="macro-name">Fat</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Available Meals Grid -->
+                <div class="available-meals-grid">
+                    <div class="meal-search-bar">
+                        <input type="text" placeholder="Search meals..." class="search-input" id="mealSearch">
+                        <div class="meal-filter-buttons">
+                            <button class="filter-btn active" onclick="filterMeals('all')">All</button>
+                            <button class="filter-btn" onclick="filterMeals('Chinese')">Chinese</button>
+                            <button class="filter-btn" onclick="filterMeals('Mexican')">Mexican</button>
+                            <button class="filter-btn" onclick="filterMeals('Italian')">Italian</button>
+                            <button class="filter-btn" onclick="filterMeals('Japanese')">Japanese</button>
+                        </div>
+                    </div>
+
+                    <div class="meals-grid" id="mealsGrid">
+                        <!-- Meal cards generated by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="pareto-working-app.js"></script>
+    <script>
+// Pareto Life System - Working Version
+// Simple and functional
+
+// State
+let currentMonth = new Date();
+let tasks = [
+    { id: 1, name: 'Complete project proposal', priority: 'high', type: 'need', duration: 120, completed: false },
+    { id: 2, name: 'Check emails', priority: 'low', type: 'need', duration: 30, completed: true },
+    { id: 3, name: 't', priority: 'medium', type: 'need', duration: 30, completed: false },
+    { id: 4, name: 'task', priority: 'medium', type: 'need', duration: 30, completed: false },
+    { id: 5, name: 'task name', priority: 'medium', type: 'need', duration: 30, completed: false }
+];
+
+// Initialize when page loads - use DOMContentLoaded for faster loading
+function initializeApp() {
+    console.log('🚀 Pareto Life System Loading...');
+    
+    // Wait a tiny bit to ensure DOM is fully painted
+    setTimeout(() => {
+        // Initialize calendar
+        generateCalendar();
+        console.log('✅ Calendar initialized');
+        
+        // Initialize tasks
+        renderTasks();
+        console.log('✅ Tasks rendered');
+        
+        // Initialize greeting
+        updateGreeting();
+        console.log('✅ Greeting updated');
+        
+        // Initialize Pareto chart
+        createParetoChart();
+        console.log('✅ Pareto chart created');
+        
+        // Initialize meals from Kimi database
+        console.log('📊 Loading 36 Kimi meals...');
+        console.log('   - Western: 16 meals');
+        console.log('   - Hong Kong: 11 meals');
+        console.log('   - Italian: 3 meals');
+        console.log('   - Mexican: 3 meals');
+        console.log('   - Japanese: 3 meals');
+        
+        renderMeals();
+        console.log('✅ Meals displayed in "Today\'s Meals"');
+        
+        if (typeof renderMealsGrid === 'function') {
+            renderMealsGrid();
+            console.log('✅ Meal planner grid ready');
+        }
+        
+        // Load balance sliders
+        loadBalance();
+        console.log('✅ Balance sliders loaded');
+        
+        console.log('🎉 Pareto Life System Fully Loaded!');
+        console.log('📝 Total meals available:', kimiMealDatabase.length);
+    }, 100); // Small delay to ensure DOM is ready
+}
+
+// Try DOMContentLoaded first (faster), fallback to load event
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeApp);
+} else {
+    // DOM already loaded
+    initializeApp();
+}
+
+// Generate Calendar
+function generateCalendar() {
+    console.log('Generating calendar...');
+    const grid = document.getElementById('calendarGrid');
+    if (!grid) {
+        console.error('Calendar grid not found!');
+        return;
+    }
+    
+    grid.innerHTML = '';
+    
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+    
+    // Update month display
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                       'July', 'August', 'September', 'October', 'November', 'December'];
+    const monthLabel = document.getElementById('monthYear');
+    if (monthLabel) {
+        monthLabel.textContent = monthNames[month] + ' ' + year;
+    }
+    
+    // Day headers
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    days.forEach(day => {
+        const header = document.createElement('div');
+        header.className = 'calendar-day-header';
+        header.textContent = day;
+        grid.appendChild(header);
+    });
+    
+    // Get calendar data
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const daysInPrevMonth = new Date(year, month, 0).getDate();
+    
+    const today = new Date();
+    const isCurrentMonth = today.getMonth() === month && today.getFullYear() === year;
+    
+    // Previous month days
+    for (let i = firstDay - 1; i >= 0; i--) {
+        const day = createDay(daysInPrevMonth - i, false, [], true);
+        grid.appendChild(day);
+    }
+    
+    // Current month days - check for actual tasks
+    for (let date = 1; date <= daysInMonth; date++) {
+        const isToday = isCurrentMonth && date === today.getDate();
+        
+        // Get tasks for this date (using demo data - you can link to actual task dates later)
+        const taskPriorities = getTasksForDate(date);
+        
+        const day = createDay(date, isToday, taskPriorities, false);
+        grid.appendChild(day);
+    }
+    
+    // Next month days
+    const totalCells = firstDay + daysInMonth;
+    const remainingCells = 42 - totalCells;
+    for (let date = 1; date <= remainingCells; date++) {
+        const day = createDay(date, false, [], true);
+        grid.appendChild(day);
+    }
+    
+    console.log('Calendar generated successfully!');
+}
+
+function getTasksForDate(date) {
+    // No markers by default - only show when tasks have actual dates
+    // To add: give tasks a 'scheduledDate' field and filter by it here
+    return [];
+}
+
+function createDay(date, isToday, taskPriorities, isOtherMonth) {
+    const day = document.createElement('div');
+    day.className = 'calendar-day';
+    
+    if (isToday) day.classList.add('today');
+    if (taskPriorities.length > 0) day.classList.add('has-tasks');
+    if (isOtherMonth) day.classList.add('other-month');
+    
+    // Add date number
+    const dateNum = document.createElement('span');
+    dateNum.textContent = date;
+    day.appendChild(dateNum);
+    
+    // Add task dots ONLY if there are actual tasks
+    if (taskPriorities.length > 0 && !isOtherMonth) {
+        const dotsContainer = document.createElement('div');
+        dotsContainer.className = 'task-dots';
+        
+        // Map priorities to colors
+        const priorityColors = {
+            'high': '#10b981',    // Green
+            'medium': '#f59e0b',  // Amber
+            'low': '#ef4444'      // Red/Coral
+        };
+        
+        taskPriorities.forEach(priority => {
+            const dot = document.createElement('div');
+            dot.className = 'task-dot';
+            dot.style.backgroundColor = priorityColors[priority] || '#8b5cf6';
+            dotsContainer.appendChild(dot);
+        });
+        
+        day.appendChild(dotsContainer);
+    }
+    
+    return day;
+}
+
+function changeMonth(direction) {
+    currentMonth.setMonth(currentMonth.getMonth() + direction);
+    generateCalendar();
+}
+
+// Update greeting based on time
+function updateGreeting() {
+    const now = new Date();
+    const hour = now.getHours();
+    let greeting, icon;
+    
+    if (hour < 12) {
+        greeting = 'Good morning';
+        icon = '☀️';
+    } else if (hour < 18) {
+        greeting = 'Good afternoon';
+        icon = '☁️';
+    } else {
+        greeting = 'Good evening';
+        icon = '🌙';
+    }
+    
+    const greetingText = document.getElementById('greetingText');
+    const greetingIcon = document.getElementById('greetingIcon');
+    
+    if (greetingText) greetingText.textContent = greeting + ', Jason';
+    if (greetingIcon) greetingIcon.textContent = icon;
+    
+    // Also update the date
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    const dateString = now.toLocaleDateString('en-US', options);
+    const dateText = document.getElementById('dateText');
+    if (dateText) {
+        // Keep the task counter part
+        const taskMatch = dateText.textContent.match(/\d+\/\d+ tasks completed/);
+        const tasksPart = taskMatch ? taskMatch[0] : '0/6 tasks completed';
+        dateText.textContent = dateString + ' • ' + tasksPart;
+    }
+}
+
+// Energy slider
+function updateEnergy(value) {
+    const display = document.getElementById('energyValue');
+    if (display) {
+        display.textContent = value;
+    }
+}
+
+// Render tasks
+function renderTasks() {
+    const container = document.getElementById('taskList');
+    if (!container) return;
+    
+    const html = tasks.map((task, index) => {
+        const borderColors = { high: '#10b981', medium: '#f59e0b', low: '#ef4444' };
+        const priorityIcons = { high: '⚡', medium: '⚠️', low: '📝' };
+        
+        return `
+            <div class="task-item priority-${task.priority} ${task.completed ? 'completed' : ''}" 
+                 style="border-left-color: ${borderColors[task.priority]}">
+                <div class="task-checkbox" onclick="toggleTask(${index})">
+                    ${task.completed ? '<span style="color: white">✓</span>' : ''}
+                </div>
+                <div class="task-content" onclick="editTask(${index})">
+                    <div class="task-name">${task.name}</div>
+                    <div class="task-meta">
+                        <span class="task-meta-item">
+                            ${priorityIcons[task.priority]} ${task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
+                        </span>
+                        ${task.duration ? `<span class="task-meta-item">⏱️ ${task.duration}min</span>` : ''}
+                    </div>
+                </div>
+                <button class="task-delete-btn" onclick="deleteTask(${index})" title="Delete task">🗑️</button>
+            </div>
+        `;
+    }).join('');
+    
+    container.innerHTML = html;
+    updateProgress();
+}
+
+function editTask(index) {
+    const task = tasks[index];
+    
+    // Open modal with task data
+    document.getElementById('taskInput').value = task.name;
+    document.getElementById('taskCategory').value = task.category;
+    document.getElementById('taskPriority').value = task.priority;
+    document.getElementById('taskType').value = task.type;
+    document.getElementById('taskDuration').value = task.duration;
+    document.getElementById('taskTime').value = task.time || '';
+    
+    // Change save button to update
+    const modal = document.getElementById('taskModal');
+    modal.style.display = 'flex';
+    
+    const saveBtn = document.querySelector('#taskModal .btn-primary');
+    saveBtn.textContent = 'Update Task';
+    saveBtn.onclick = function() { updateTask(index); };
+}
+
+function updateTask(index) {
+    const input = document.getElementById('taskInput');
+    const category = document.getElementById('taskCategory');
+    const priority = document.getElementById('taskPriority');
+    const type = document.getElementById('taskType');
+    const duration = document.getElementById('taskDuration');
+    const time = document.getElementById('taskTime');
+    
+    if (!input || !input.value.trim()) {
+        alert('Please enter a task name');
+        return;
+    }
+    
+    tasks[index] = {
+        ...tasks[index],
+        name: input.value.trim(),
+        category: category ? category.value : tasks[index].category,
+        priority: priority ? priority.value : tasks[index].priority,
+        type: type ? type.value : tasks[index].type,
+        duration: duration ? parseInt(duration.value) : tasks[index].duration,
+        time: time ? time.value : tasks[index].time
+    };
+    
+    renderTasks();
+    updateParetoChart();
+    closeAddTask();
+}
+
+function deleteTask(index) {
+    if (confirm('Delete this task?')) {
+        tasks.splice(index, 1);
+        renderTasks();
+        updateParetoChart();
+    }
+}
+
+function toggleTask(index) {
+    tasks[index].completed = !tasks[index].completed;
+    renderTasks();
+    updateParetoChart();
+}
+
+function updateProgress() {
+    const completed = tasks.filter(t => t.completed).length;
+    const total = tasks.length;
+    const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+    
+    const progressEl = document.getElementById('taskProgress');
+    const percentEl = document.getElementById('completionPercent');
+    
+    if (progressEl) progressEl.textContent = `${completed} of ${total} completed`;
+    if (percentEl) percentEl.textContent = `${percent}%`;
+}
+
+// Task modal
+function openAddTask() {
+    const modal = document.getElementById('taskModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        setTimeout(() => {
+            const input = document.getElementById('taskInput');
+            if (input) input.focus();
+        }, 100);
+    }
+}
+
+function closeAddTask() {
+    const modal = document.getElementById('taskModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+    // Clear form
+    const input = document.getElementById('taskInput');
+    if (input) input.value = '';
+    
+    // Reset save button
+    const saveBtn = document.querySelector('#taskModal .btn-primary');
+    if (saveBtn) {
+        saveBtn.textContent = 'Add Task';
+        saveBtn.onclick = saveNewTask;
+    }
+}
+
+function saveNewTask() {
+    const input = document.getElementById('taskInput');
+    const category = document.getElementById('taskCategory');
+    const priority = document.getElementById('taskPriority');
+    const type = document.getElementById('taskType');
+    const duration = document.getElementById('taskDuration');
+    
+    if (!input || !input.value.trim()) {
+        alert('Please enter a task name');
+        return;
+    }
+    
+    // Auto-map priority to type: High/Medium = Need, Low = Want
+    const selectedPriority = priority ? priority.value : 'medium';
+    const autoType = (selectedPriority === 'high' || selectedPriority === 'medium') ? 'need' : 'want';
+    
+    const newTask = {
+        id: Date.now(),
+        name: input.value.trim(),
+        category: category ? category.value : 'Personal',
+        priority: selectedPriority,
+        type: autoType,
+        duration: duration ? parseInt(duration.value) : 30,
+        completed: false
+    };
+    
+    tasks.push(newTask);
+    renderTasks();
+    updateParetoChart();
+    closeAddTask();
+}
+
+// Meals
+function renderMeals() {
+    const container = document.getElementById('mealList');
+    if (!container) return;
+    
+    // Get 6 random meals from the database (increased from 3)
+    const shuffled = [...kimiMealDatabase].sort(() => Math.random() - 0.5);
+    const meals = shuffled.slice(0, 6);
+    
+    const html = meals.map(meal => `
+        <div class="meal-card" onclick="showMealDetail('${meal.name}', '${meal.image}', ${meal.time}, ${meal.calories}, ${meal.protein}, ${meal.carbs}, ${meal.fat}, '${meal.tags.join(',')}', '${meal.category || meal.cuisine}')">
+            <img src="${meal.image}" 
+                 alt="${meal.name}" 
+                 class="meal-image" 
+                 crossorigin="anonymous"
+                 loading="lazy"
+                 onload="this.style.opacity=1"
+                 onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg width=%2780%27 height=%2780%27 xmlns=%27http://www.w3.org/2000/svg%27%3E%3Crect fill=%27%238b5cf6%27 width=%2780%27 height=%2780%27/%3E%3Ctext x=%2750%25%27 y=%2750%25%27 text-anchor=%27middle%27 dy=%27.3em%27 fill=%27white%27 font-size=%2732%27%3E🍽️%3C/text%3E%3C/svg%3E'; this.style.opacity=1;">
+            <div class="meal-info">
+                <div class="meal-name">${meal.name}</div>
+                <div class="meal-details">
+                    <span>⏱️ ${meal.time}min</span>
+                    <span>•</span>
+                    <span>🔥 ${meal.calories} kcal</span>
+                </div>
+                <div class="meal-tags">
+                    <span class="meal-tag cuisine-tag">${meal.category || meal.cuisine}</span>
+                    ${meal.tags.slice(0, 1).map(tag => `<span class="meal-tag">${tag}</span>`).join('')}
+                </div>
+            </div>
+        </div>
+    `).join('');
+    
+    container.innerHTML = html;
+    console.log(`Displaying ${meals.length} meals from ${kimiMealDatabase.length} total meals across 5 cuisines`);
+}
+
+function showMealDetail(name, image, time, calories, protein, carbs, fat, tagsStr, cuisine) {
+    const tags = tagsStr.split(',');
+    const details = `
+${name}
+${cuisine} Cuisine
+
+⏱️ Prep Time: ${time} min
+🔥 Calories: ${calories} kcal
+
+Macros:
+💪 Protein: ${protein}g
+🍞 Carbs: ${carbs}g
+🥑 Fat: ${fat}g
+
+Tags: ${tags.join(', ')}
+    `;
+    alert(details.trim());
+}
+
+// Voice Assistant
+function activateVoice() {
+    const status = document.getElementById('voiceStatus');
+    const orbBtn = document.getElementById('voiceOrbBtn');
+    
+    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+        alert('Voice recognition not supported. Please use Chrome or Edge browser.');
+        return;
+    }
+    
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    
+    recognition.onstart = function() {
+        if (status) status.textContent = 'Listening... Speak now!';
+        if (orbBtn) orbBtn.classList.add('listening');
+    };
+    
+    recognition.onresult = function(event) {
+        const command = event.results[0][0].transcript;
+        runCommand(command);
+    };
+    
+    recognition.onend = function() {
+        if (status) status.textContent = 'Tap the orb to speak';
+        if (orbBtn) orbBtn.classList.remove('listening');
+    };
+    
+    recognition.onerror = function(event) {
+        console.error('Speech error:', event.error);
+        if (status) status.textContent = 'Error - try again';
+        if (orbBtn) orbBtn.classList.remove('listening');
+        setTimeout(() => {
+            if (status) status.textContent = 'Tap the orb to speak';
+        }, 2000);
+    };
+    
+    recognition.start();
+}
+
+function runCommand(command) {
+    const lower = command.toLowerCase();
+    let response = '';
+    
+    if (lower.includes('plan')) {
+        const pending = tasks.filter(t => !t.completed).length;
+        response = `You have ${pending} tasks pending today. Focus on high priority items first!`;
+    } else if (lower.includes('lunch')) {
+        response = 'I suggest the Quinoa Power Bowl for lunch. It has 450 calories and 18g of protein.';
+    } else if (lower.includes('prioritize')) {
+        const high = tasks.filter(t => !t.completed && t.priority === 'high');
+        if (high.length > 0) {
+            response = `Your top priority is: ${high[0].name}`;
+        } else {
+            response = 'Great! No high priority tasks pending.';
+        }
+    } else {
+        response = 'I can help you plan your day, suggest meals, and prioritize tasks!';
+    }
+    
+    alert(response);
+    
+    // Try to speak response
+    if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(response);
+        window.speechSynthesis.speak(utterance);
+    }
+}
+
+console.log('Script loaded successfully!');
+
+// ========================================
+// PARETO DONUT CHART
+// ========================================
+
+let paretoChart = null;
+
+function createParetoChart() {
+    const ctx = document.getElementById('paretoDonutChart');
+    if (!ctx) {
+        console.log('Pareto chart canvas not found');
+        return;
+    }
+    
+    // Calculate based on PRIORITY: High/Medium = Need, Low = Want
+    const needTasks = tasks.filter(t => t.priority === 'high' || t.priority === 'medium').length;
+    const wantTasks = tasks.filter(t => t.priority === 'low').length;
+    const total = needTasks + wantTasks || 1;
+    
+    const needsPercent = (needTasks / total) * 100;
+    const wantsPercent = (wantTasks / total) * 100;
+    
+    paretoChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            // IMPORTANT: Wants first, then Needs (to make Wants start at 12 o'clock clockwise)
+            labels: ['Wants (20%)', 'Needs (80%)'],
+            datasets: [{
+                data: [wantsPercent, needsPercent],
+                backgroundColor: [
+                    '#f59e0b', // Amber for Wants
+                    '#10b981'  // Green for Needs
+                ],
+                borderColor: [
+                    '#f59e0b',
+                    '#10b981'
+                ],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            rotation: -90, // Start at top (12 o'clock)
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    borderColor: 'rgba(255, 255, 255, 0.2)',
+                    borderWidth: 1,
+                    callbacks: {
+                        label: function(context) {
+                            return context.label + ': ' + context.parsed.toFixed(1) + '%';
+                        }
+                    }
+                }
+            },
+            cutout: '70%'
+        }
+    });
+    
+    updateParetoStats();
+}
+
+function updateParetoStats() {
+    // Calculate based on PRIORITY: High/Medium = Need, Low = Want
+    const needTasks = tasks.filter(t => t.priority === 'high' || t.priority === 'medium').length;
+    const wantTasks = tasks.filter(t => t.priority === 'low').length;
+    
+    // Assuming 1.5 hours per task
+    const needHours = (needTasks * 1.5).toFixed(1);
+    const wantHours = (wantTasks * 1.5).toFixed(1);
+    
+    const needEl = document.getElementById('needHoursChart');
+    const wantEl = document.getElementById('wantHoursChart');
+    
+    if (needEl) needEl.textContent = needHours;
+    if (wantEl) wantEl.textContent = wantHours;
+}
+
+function updateParetoChart() {
+    if (!paretoChart) return;
+    
+    // Calculate based on PRIORITY: High/Medium = Need, Low = Want
+    const needTasks = tasks.filter(t => t.priority === 'high' || t.priority === 'medium').length;
+    const wantTasks = tasks.filter(t => t.priority === 'low').length;
+    const total = needTasks + wantTasks || 1;
+    
+    const needsPercent = (needTasks / total) * 100;
+    const wantsPercent = (wantTasks / total) * 100;
+    
+    // Wants first, Needs second
+    paretoChart.data.datasets[0].data = [wantsPercent, needsPercent];
+    paretoChart.update();
+    
+    updateParetoStats();
+}
+let kimiMealDatabase = [
+    {id:1,name:"Grain Bowl",type:"lunch",category:"Western",calories:520,protein:35,carbs:48,fat:22,time:25,tags:["High Protein","Quick"],image:"https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&h=300&fit=crop"},
+    {id:2,name:"Creamy Pasta",type:"lunch",category:"Western",calories:480,protein:18,carbs:62,fat:16,time:20,tags:["Quick","Vegetarian"],image:"https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?w=400&h=300&fit=crop"},
+    {id:3,name:"Veggie Stir Fry",type:"dinner",category:"Western",calories:320,protein:12,carbs:45,fat:10,time:15,tags:["Vegetarian","Quick"],image:"https://images.unsplash.com/photo-1512058564366-18510be2db19?w=400&h=300&fit=crop"},
+    {id:4,name:"Hearty Soup",type:"lunch",category:"Western",calories:280,protein:14,carbs:38,fat:8,time:35,tags:["Vegetarian"],image:"https://images.unsplash.com/photo-1547592166-23ac45744acd?w=400&h=300&fit=crop"},
+    {id:5,name:"Salmon Bowl",type:"dinner",category:"Western",calories:580,protein:42,carbs:52,fat:24,time:28,tags:["High Protein"],image:"https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=400&h=300&fit=crop"},
+    {id:6,name:"Chicken Wrap",type:"lunch",category:"Western",calories:420,protein:32,carbs:38,fat:16,time:15,tags:["High Protein","Quick"],image:"https://images.unsplash.com/photo-1626700051175-6818013e1d4f?w=400&h=300&fit=crop"},
+    {id:7,name:"Poke Bowl",type:"lunch",category:"Western",calories:450,protein:28,carbs:55,fat:14,time:22,tags:["High Protein"],image:"https://images.unsplash.com/photo-1546069901-eac8c620e924?w=400&h=300&fit=crop"},
+    {id:8,name:"Noodle Bowl",type:"dinner",category:"Western",calories:380,protein:16,carbs:58,fat:10,time:18,tags:["Vegetarian","Quick"],image:"https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400&h=300&fit=crop"},
+    {id:9,name:"Berry Parfait",type:"breakfast",category:"Western",calories:280,protein:15,carbs:42,fat:6,time:10,tags:["Quick","Vegetarian"],image:"https://images.unsplash.com/photo-1488477181946-6428a0291777?w=400&h=300&fit=crop"},
+    {id:10,name:"Avocado Toast",type:"breakfast",category:"Western",calories:340,protein:14,carbs:28,fat:20,time:12,tags:["Quick","Vegetarian"],image:"https://images.unsplash.com/photo-1541519227354-08fa5d50c44d?w=400&h=300&fit=crop"},
+    {id:11,name:"Steak & Veggies",type:"dinner",category:"Western",calories:620,protein:48,carbs:32,fat:34,time:35,tags:["High Protein"],image:"https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=400&h=300&fit=crop"},
+    {id:12,name:"Chickpea Salad",type:"lunch",category:"Western",calories:360,protein:16,carbs:48,fat:14,time:15,tags:["Vegetarian","Quick"],image:"https://images.unsplash.com/photo-1505253716362-afaea1d3d1af?w=400&h=300&fit=crop"},
+    {id:13,name:"Shrimp Tacos",type:"dinner",category:"Western",calories:380,protein:30,carbs:42,fat:12,time:20,tags:["High Protein","Quick"],image:"https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=400&h=300&fit=crop"},
+    {id:14,name:"Overnight Oats",type:"breakfast",category:"Western",calories:320,protein:12,carbs:52,fat:8,time:5,tags:["Quick","Vegetarian"],image:"https://images.unsplash.com/photo-1517673132405-a56a62b18caf?w=400&h=300&fit=crop"},
+    {id:15,name:"Zoodle Meatballs",type:"dinner",category:"Western",calories:420,protein:35,carbs:18,fat:24,time:30,tags:["High Protein"],image:"https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?w=400&h=300&fit=crop"},
+    {id:16,name:"Buddha Bowl",type:"lunch",category:"Western",calories:440,protein:18,carbs:58,fat:16,time:25,tags:["Vegetarian"],image:"https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400&h=300&fit=crop"},
+    {id:17,name:"Char Siu Rice",type:"lunch",category:"Hong Kong",calories:580,protein:32,carbs:68,fat:22,time:30,tags:["High Protein"],image:"https://images.unsplash.com/photo-1512003867696-6d5ce6835040?w=400&h=300&fit=crop"},
+    {id:18,name:"Beef & Egg Rice",type:"lunch",category:"Hong Kong",calories:520,protein:35,carbs:58,fat:18,time:20,tags:["High Protein","Quick"],image:"https://images.unsplash.com/photo-1603133872878-684f208fb84b?w=400&h=300&fit=crop"},
+    {id:19,name:"Spam & Egg Rice",type:"breakfast",category:"Hong Kong",calories:480,protein:22,carbs:55,fat:24,time:12,tags:["Quick"],image:"https://images.unsplash.com/photo-1512003867696-6d5ce6835040?w=400&h=300&fit=crop"},
+    {id:20,name:"Wonton Noodles",type:"lunch",category:"Hong Kong",calories:420,protein:28,carbs:52,fat:12,time:25,tags:["High Protein"],image:"https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400&h=300&fit=crop"},
+    {id:21,name:"Beef Ho Fun",type:"dinner",category:"Hong Kong",calories:540,protein:30,carbs:62,fat:20,time:18,tags:["High Protein","Quick"],image:"https://images.unsplash.com/photo-1617093727343-374698b1b08d?w=400&h=300&fit=crop"},
+    {id:22,name:"Steamed Fish",type:"dinner",category:"Hong Kong",calories:320,protein:38,carbs:35,fat:8,time:25,tags:["High Protein"],image:"https://images.unsplash.com/photo-1580959375944-95a7e944c5b8?w=400&h=300&fit=crop"},
+    {id:23,name:"Soy Sauce Chicken",type:"dinner",category:"Hong Kong",calories:480,protein:42,carbs:45,fat:16,time:35,tags:["High Protein"],image:"https://images.unsplash.com/photo-1598103442097-8b74394b95c6?w=400&h=300&fit=crop"},
+    {id:24,name:"Tomato Egg Rice",type:"lunch",category:"Hong Kong",calories:380,protein:16,carbs:52,fat:14,time:15,tags:["Vegetarian","Quick"],image:"https://images.unsplash.com/photo-1603133872878-684f208fb84b?w=400&h=300&fit=crop"},
+    {id:25,name:"White Cut Chicken",type:"dinner",category:"Hong Kong",calories:420,protein:45,carbs:38,fat:12,time:30,tags:["High Protein"],image:"https://images.unsplash.com/photo-1598103442097-8b74394b95c6?w=400&h=300&fit=crop"},
+    {id:26,name:"Steamed Ribs",type:"dinner",category:"Hong Kong",calories:460,protein:35,carbs:42,fat:20,time:40,tags:["High Protein"],image:"https://images.unsplash.com/photo-1544025162-d76694265947?w=400&h=300&fit=crop"},
+    {id:27,name:"Pan Salmon Rice",type:"lunch",category:"Hong Kong",calories:520,protein:38,carbs:48,fat:22,time:20,tags:["High Protein","Quick"],image:"https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=400&h=300&fit=crop"},
+    {id:28,name:"Margherita Pizza",type:"dinner",category:"Italian",calories:680,protein:24,carbs:82,fat:28,time:35,tags:["Vegetarian"],image:"https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400&h=300&fit=crop"},
+    {id:29,name:"Mushroom Risotto",type:"dinner",category:"Italian",calories:480,protein:14,carbs:68,fat:18,time:40,tags:["Vegetarian"],image:"https://images.unsplash.com/photo-1633964913295-ceb43826ab23?w=400&h=300&fit=crop"},
+    {id:30,name:"Chicken Parm",type:"dinner",category:"Italian",calories:620,protein:45,carbs:48,fat:28,time:35,tags:["High Protein"],image:"https://images.unsplash.com/photo-1632778149955-e80f8ceca2e8?w=400&h=300&fit=crop"},
+    {id:31,name:"Tacos Al Pastor",type:"dinner",category:"Mexican",calories:420,protein:28,carbs:48,fat:16,time:25,tags:["High Protein","Quick"],image:"https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=400&h=300&fit=crop"},
+    {id:32,name:"Burrito Bowl",type:"lunch",category:"Mexican",calories:540,protein:32,carbs:62,fat:18,time:20,tags:["High Protein","Quick"],image:"https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&h=300&fit=crop"},
+    {id:33,name:"Enchiladas",type:"dinner",category:"Mexican",calories:580,protein:30,carbs:58,fat:26,time:35,tags:["High Protein"],image:"https://images.unsplash.com/photo-1534352956036-cd81e27dd615?w=400&h=300&fit=crop"},
+    {id:34,name:"Chicken Teriyaki",type:"dinner",category:"Japanese",calories:480,protein:35,carbs:52,fat:14,time:22,tags:["High Protein","Quick"],image:"https://images.unsplash.com/photo-1598103442097-8b74394b95c6?w=400&h=300&fit=crop"},
+    {id:35,name:"Sushi Roll",type:"lunch",category:"Japanese",calories:380,protein:18,carbs:52,fat:10,time:30,tags:["High Protein"],image:"https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=400&h=300&fit=crop"},
+    {id:36,name:"Tonkotsu Ramen",type:"dinner",category:"Japanese",calories:560,protein:32,carbs:58,fat:24,time:45,tags:["High Protein"],image:"https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400&h=300&fit=crop"}
+];
+
+console.log('✅ 36 Kimi meals loaded automatically!');
+
+// Update refresh menu function
+function refreshMealMenuFromKimi() {
+    renderMeals();
+    if (typeof renderMealsGrid === 'function') {
+        renderMealsGrid();
+    }
+    showNotification('✅ Refreshed meal menu!', 'success');
+}
+
+window.refreshMealMenu = refreshMealMenuFromKimi;
+
+// All initialization is handled in the main load event at the top of the file
+
+
+
+// ========================================
+// MEAL PLANNER MODAL
+// ========================================
+
+let currentMealType = 'all';
+let currentFilter = 'all';
+
+function openMealPlanner() {
+    const modal = document.getElementById('mealPlannerModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        generateWeekTabs();
+        renderMealsGrid();
+    }
+}
+
+function closeMealPlanner() {
+    const modal = document.getElementById('mealPlannerModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+function generateWeekTabs() {
+    const container = document.getElementById('weekTabs');
+    if (!container) return;
+    
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const html = days.map((day, index) => `
+        <button class="week-tab ${index === 0 ? 'active' : ''}" onclick="selectDay(${index})">
+            ${day}
+        </button>
+    `).join('');
+    
+    container.innerHTML = html;
+}
+
+function selectDay(index) {
+    // Update active tab
+    document.querySelectorAll('.week-tab').forEach((tab, i) => {
+        tab.classList.toggle('active', i === index);
+    });
+    
+    // Update day meals display
+    updatePlannerNutrition();
+}
+
+function renderMealsGrid() {
+    const container = document.getElementById('mealsGrid');
+    if (!container) return;
+    
+    let filteredMeals = kimiMealDatabase;
+    if (currentFilter !== 'all') {
+        filteredMeals = kimiMealDatabase.filter(m => 
+            m.tags.some(tag => tag.toLowerCase().includes(currentFilter.toLowerCase()))
+        );
+    }
+    
+    const html = filteredMeals.map(meal => `
+        <div class="kimi-meal-card" onclick="addMealToDay(${meal.id})">
+            <img src="${meal.image}" 
+                 alt="${meal.name}" 
+                 class="kimi-meal-image"
+                 crossorigin="anonymous"
+                 loading="lazy"
+                 onload="this.style.opacity=1"
+                 onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg width=%27200%27 height=%27150%27 xmlns=%27http://www.w3.org/2000/svg%27%3E%3Crect fill=%27%238b5cf6%27 width=%27200%27 height=%27150%27/%3E%3Ctext x=%2750%25%27 y=%2750%25%27 text-anchor=%27middle%27 dy=%27.3em%27 fill=%27white%27 font-size=%2740%27%3E🍽️%3C/text%3E%3C/svg%3E'; this.style.opacity=1;">
+            <div class="kimi-meal-info">
+                <div class="kimi-meal-tags">
+                    <span class="kimi-tag category-tag">${meal.category || meal.cuisine}</span>
+                    ${meal.tags.slice(0, 2).map(tag => `<span class="kimi-tag">${tag}</span>`).join('')}
+                </div>
+                <h4 class="kimi-meal-name">${meal.name}</h4>
+                <div class="kimi-meal-meta">
+                    <span>⏱️ ${meal.time}min</span>
+                    <span>•</span>
+                    <span>🔥 ${meal.calories} kcal</span>
+                </div>
+                <div class="kimi-meal-macros">
+                    <span class="macro-item">${meal.protein}g protein</span>
+                    <span class="macro-item">${meal.carbs}g carbs</span>
+                    <span class="macro-item">${meal.fat}g fat</span>
+                </div>
+                <button class="kimi-add-btn" onclick="event.stopPropagation(); addMealToDay(${meal.id})">+</button>
+            </div>
+        </div>
+    `).join('');
+    
+    container.innerHTML = html;
+}
+
+function filterMeals(type) {
+    currentFilter = type;
+    
+    // Update active filter button
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+    
+    renderMealsGrid();
+}
+
+function selectMealType(type) {
+    currentMealType = type;
+}
+
+function addMealToDay(mealId) {
+    const meal = kimiMealDatabase.find(m => m.id === mealId);
+    if (!meal) return;
+    
+    console.log('Added meal:', meal.name);
+    showNotification(`Added ${meal.name} to plan!`, 'success');
+}
+
+function removeMeal(type) {
+    console.log('Removed', type);
+}
+
+function updatePlannerNutrition() {
+    // Update nutrition totals for selected day
+    const totalCals = document.getElementById('totalCalories');
+    const totalProtein = document.getElementById('totalProtein');
+    const totalCarbs = document.getElementById('totalCarbs');
+    const totalFat = document.getElementById('totalFat');
+    
+    if (totalCals) totalCals.textContent = '0';
+    if (totalProtein) totalProtein.textContent = '0g';
+    if (totalCarbs) totalCarbs.textContent = '0g';
+    if (totalFat) totalFat.textContent = '0g';
+}
+
+// Make functions global
+window.openMealPlanner = openMealPlanner;
+window.closeMealPlanner = closeMealPlanner;
+window.filterMeals = filterMeals;
+window.selectDay = selectDay;
+window.selectMealType = selectMealType;
+window.addMealToDay = addMealToDay;
+
+// ========================================
+// COMPREHENSIVE FIXES FOR PARETO SYSTEM
+// ========================================
+
+// Fix 1: Make sliders update properly
+function updateEnergy(value) {
+    const display = document.getElementById('energyValue');
+    if (display) {
+        display.textContent = value;
+    }
+    // Also update the icon based on energy level
+    const icon = document.getElementById('energyIcon');
+    if (icon) {
+        if (value < 30) icon.textContent = '😴';
+        else if (value < 70) icon.textContent = '😊';
+        else icon.textContent = '⚡';
+    }
+}
+
+// Fix 2: Enhanced meal planner with actual state management
+let selectedDayIndex = 0;
+let weekPlan = {
+    0: { breakfast: null, lunch: null, dinner: null, snack: null },
+    1: { breakfast: null, lunch: null, dinner: null, snack: null },
+    2: { breakfast: null, lunch: null, dinner: null, snack: null },
+    3: { breakfast: null, lunch: null, dinner: null, snack: null },
+    4: { breakfast: null, lunch: null, dinner: null, snack: null },
+    5: { breakfast: null, lunch: null, dinner: null, snack: null },
+    6: { breakfast: null, lunch: null, dinner: null, snack: null }
+};
+
+function selectDay(index) {
+    selectedDayIndex = index;
+    
+    // Update active tab
+    document.querySelectorAll('.week-tab').forEach((tab, i) => {
+        tab.classList.toggle('active', i === index);
+    });
+    
+    // Render the meals for this day
+    renderDayMeals(index);
+    updatePlannerNutrition();
+}
+
+function renderDayMeals(dayIndex) {
+    const dayPlan = weekPlan[dayIndex];
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    
+    // Update breakfast slot
+    const breakfastSlot = document.querySelector('.add-meal-slot[onclick*="breakfast"]');
+    if (breakfastSlot && dayPlan.breakfast) {
+        const meal = kimiMealDatabase.find(m => m.id === dayPlan.breakfast);
+        if (meal) {
+            breakfastSlot.outerHTML = createMealSlotHTML(meal, 'breakfast');
+        }
+    }
+    
+    // Update lunch slot
+    const lunchSlot = document.querySelector('.add-meal-slot[onclick*="lunch"]');
+    if (lunchSlot && dayPlan.lunch) {
+        const meal = kimiMealDatabase.find(m => m.id === dayPlan.lunch);
+        if (meal) {
+            lunchSlot.outerHTML = createMealSlotHTML(meal, 'lunch');
+        }
+    }
+    
+    // Update dinner slot
+    const dinnerSlot = document.querySelector('.add-meal-slot[onclick*="dinner"]');
+    if (dinnerSlot && dayPlan.dinner) {
+        const meal = kimiMealDatabase.find(m => m.id === dayPlan.dinner);
+        if (meal) {
+            dinnerSlot.outerHTML = createMealSlotHTML(meal, 'dinner');
+        }
+    }
+}
+
+function createMealSlotHTML(meal, type) {
+    return `
+        <div class="planned-meal">
+            <img src="${meal.image}" alt="${meal.name}" class="planned-meal-img"
+                 onerror="this.src='data:image/svg+xml,%3Csvg width=\\'60\\' height=\\'60\\' xmlns=\\'http://www.w3.org/2000/svg\\'%3E%3Crect fill=\\'%238b5cf6\\' width=\\'60\\' height=\\'60\\'/%3E%3Ctext x=\\'50%25\\' y=\\'50%25\\' text-anchor=\\'middle\\' dy=\\'.3em\\' fill=\\'white\\' font-size=\\'24\\'%3E🍽️%3C/text%3E%3C/svg%3E'">
+            <div class="planned-meal-info">
+                <div class="planned-meal-name">${meal.name}</div>
+                <div class="planned-meal-meta">${meal.calories} kcal • ${meal.time}min</div>
+            </div>
+            <button class="remove-meal-btn" onclick="removeMeal('${type}')">×</button>
+        </div>
+    `;
+}
+
+function addMealToDay(mealId) {
+    const meal = kimiMealDatabase.find(m => m.id === mealId);
+    if (!meal) return;
+    
+    // Determine which slot to fill based on meal type
+    let slotType = meal.type;
+    if (!['breakfast', 'lunch', 'dinner', 'snack'].includes(slotType)) {
+        slotType = 'lunch'; // Default to lunch
+    }
+    
+    // Add to current day
+    weekPlan[selectedDayIndex][slotType] = mealId;
+    
+    // Re-render day
+    renderDayMeals(selectedDayIndex);
+    updatePlannerNutrition();
+    
+    showNotification(`✅ Added ${meal.name} to ${slotType}!`, 'success');
+}
+
+function removeMeal(type) {
+    weekPlan[selectedDayIndex][type] = null;
+    renderDayMeals(selectedDayIndex);
+    updatePlannerNutrition();
+    showNotification(`Removed ${type}`, 'info');
+}
+
+function updatePlannerNutrition() {
+    const dayPlan = weekPlan[selectedDayIndex];
+    let totalCals = 0, totalProtein = 0, totalCarbs = 0, totalFat = 0;
+    
+    Object.values(dayPlan).forEach(mealId => {
+        if (mealId) {
+            const meal = kimiMealDatabase.find(m => m.id === mealId);
+            if (meal) {
+                totalCals += meal.calories;
+                totalProtein += meal.protein;
+                totalCarbs += meal.carbs;
+                totalFat += meal.fat;
+            }
+        }
+    });
+    
+    const totalCalsEl = document.getElementById('totalCalories');
+    const totalProteinEl = document.getElementById('totalProtein');
+    const totalCarbsEl = document.getElementById('totalCarbs');
+    const totalFatEl = document.getElementById('totalFat');
+    
+    if (totalCalsEl) totalCalsEl.textContent = totalCals;
+    if (totalProteinEl) totalProteinEl.textContent = totalProtein + 'g';
+    if (totalCarbsEl) totalCarbsEl.textContent = totalCarbs + 'g';
+    if (totalFatEl) totalFatEl.textContent = totalFat + 'g';
+}
+
+// Fix 3: Better image loading with retries
+function ensureImageLoaded(imgElement) {
+    if (imgElement.complete && imgElement.naturalHeight !== 0) {
+        return; // Image loaded successfully
+    }
+    
+    // If image fails, use placeholder
+    imgElement.onerror = function() {
+        this.src = "data:image/svg+xml,%3Csvg width='200' height='150' xmlns='http://www.w3.org/2000/svg'%3E%3Crect fill='%238b5cf6' width='200' height='150'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='white' font-size='40'%3E🍽️%3C/text%3E%3C/svg%3E";
+    };
+}
+
+// Make functions globally available
+window.updateEnergy = updateEnergy;
+window.selectDay = selectDay;
+window.addMealToDay = addMealToDay;
+window.removeMeal = removeMeal;
+window.updatePlannerNutrition = updatePlannerNutrition;
+
+console.log('✅ All fixes applied: sliders, images, and meal planner!');
+
+// ========================================
+// BALANCE SLIDER FUNCTIONS (MISSING!)
+// ========================================
+
+const balance = {
+    sleep: 0,
+    rest: 0,
+    needs: 0,
+    wants: 0
+};
+
+const balanceTargets = {
+    sleep: 8.0,
+    rest: 3.0,
+    needs: 12.8,
+    wants: 3.2
+};
+
+function updateBalanceSlider(type, value, target) {
+    balance[type] = parseFloat(value);
+    
+    // Update the display text
+    const display = document.getElementById(`${type}Display`);
+    if (display) {
+        display.textContent = `${parseFloat(value).toFixed(1)} / ${target.toFixed(1)} hours`;
+    }
+    
+    // Save to localStorage
+    localStorage.setItem('paretoBalance', JSON.stringify(balance));
+    
+    console.log(`Updated ${type}: ${value} / ${target}`);
+}
+
+function loadBalance() {
+    const saved = localStorage.getItem('paretoBalance');
+    if (saved) {
+        const loadedBalance = JSON.parse(saved);
+        Object.assign(balance, loadedBalance);
+        
+        // Update sliders and displays
+        Object.keys(balance).forEach(key => {
+            const slider = document.getElementById(`${key}Slider`);
+            const display = document.getElementById(`${key}Display`);
+            
+            if (slider) {
+                slider.value = balance[key];
+            }
+            if (display && balanceTargets[key]) {
+                display.textContent = `${balance[key].toFixed(1)} / ${balanceTargets[key].toFixed(1)} hours`;
+            }
+        });
+    }
+}
+
+// Make globally available
+window.updateBalanceSlider = updateBalanceSlider;
+window.loadBalance = loadBalance;
+
+console.log('✅ Balance slider functions loaded!');
+
+
+// ========================================
+// INITIALIZE ON PAGE LOAD
+// ========================================
+
+window.addEventListener('load', function() {
+    console.log('🌟 DOM fully loaded, initializing Pareto System...');
+    initializeApp();
+});
+
+window.addEventListener('DOMContentLoaded', function() {
+    console.log('📄 DOM Content Loaded');
+});
+
+console.log('✅ Pareto Life System script loaded!');
+
+// ========================================
+// MEAL PLANNER PERFECT FIX
+// ========================================
+
+// Track multiple active filters (cuisine + dietary)
+let activeFilters = {
+    cuisine: 'All',  // Western, Hong Kong, Italian, Mexican, Japanese
+    dietary: 'All'   // High Protein, Quick, Vegetarian
+};
+
+// Update filter buttons with two rows: Cuisine and Dietary
+function updateFilterButtons() {
+    const container = document.querySelector('.meal-filter-buttons');
+    if (!container) return;
+    
+    // Get unique categories and tags
+    const cuisines = new Set(['All']);
+    const dietaryTags = new Set(['All']);
+    
+    kimiMealDatabase.forEach(meal => {
+        if (meal.category) cuisines.add(meal.category);
+        if (meal.tags) {
+            meal.tags.forEach(tag => {
+                if (['High Protein', 'Quick', 'Vegetarian'].includes(tag)) {
+                    dietaryTags.add(tag);
+                }
+            });
+        }
+    });
+    
+    const cuisineList = Array.from(cuisines).sort((a, b) => a === 'All' ? -1 : b === 'All' ? 1 : a.localeCompare(b));
+    const dietaryList = Array.from(dietaryTags).sort((a, b) => a === 'All' ? -1 : b === 'All' ? 1 : a.localeCompare(b));
+    
+    const html = `
+        <div style="margin-bottom: 15px;">
+            <div style="color: rgba(255,255,255,0.7); font-size: 12px; margin-bottom: 8px; font-weight: 600;">CUISINE</div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                ${cuisineList.map(cuisine => 
+                    `<button class="filter-btn ${activeFilters.cuisine === cuisine ? 'active' : ''}" 
+                             onclick="filterByCuisine('${cuisine}')">${cuisine}</button>`
+                ).join('')}
+            </div>
+        </div>
+        <div>
+            <div style="color: rgba(255,255,255,0.7); font-size: 12px; margin-bottom: 8px; font-weight: 600;">DIETARY</div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                ${dietaryList.map(diet => 
+                    `<button class="filter-btn ${activeFilters.dietary === diet ? 'active' : ''}" 
+                             onclick="filterByDietary('${diet}')">${diet}</button>`
+                ).join('')}
+            </div>
+        </div>
+    `;
+    
+    container.innerHTML = html;
+}
+
+// Filter by cuisine
+window.filterByCuisine = function(cuisine) {
+    activeFilters.cuisine = cuisine;
+    updateFilterButtons();
+    renderMealsGrid();
+};
+
+// Filter by dietary preference
+window.filterByDietary = function(dietary) {
+    activeFilters.dietary = dietary;
+    updateFilterButtons();
+    renderMealsGrid();
+};
+
+// Render meals grid with combined filters
+window.renderMealsGrid = function() {
+    const container = document.getElementById('mealsGrid');
+    if (!container) return;
+    
+    let filteredMeals = kimiMealDatabase;
+    
+    // Apply cuisine filter
+    if (activeFilters.cuisine !== 'All') {
+        filteredMeals = filteredMeals.filter(meal => 
+            meal.category === activeFilters.cuisine
+        );
+    }
+    
+    // Apply dietary filter
+    if (activeFilters.dietary !== 'All') {
+        filteredMeals = filteredMeals.filter(meal => 
+            meal.tags && meal.tags.includes(activeFilters.dietary)
+        );
+    }
+    
+    const html = filteredMeals.map(meal => `
+        <div class="kimi-meal-card" onclick="addMealToDay(${meal.id})">
+            <img src="${meal.image}" 
+                 alt="${meal.name}" 
+                 class="kimi-meal-image"
+                 crossorigin="anonymous"
+                 loading="lazy"
+                 onload="this.style.opacity=1"
+                 onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg width=%27200%27 height=%27150%27 xmlns=%27http://www.w3.org/2000/svg%27%3E%3Crect fill=%27%238b5cf6%27 width=%27200%27 height=%27150%27/%3E%3Ctext x=%2750%25%27 y=%2750%25%27 text-anchor=%27middle%27 dy=%27.3em%27 fill=%27white%27 font-size=%2740%27%3E🍽️%3C/text%3E%3C/svg%3E'; this.style.opacity=1;">
+            <div class="kimi-meal-info">
+                <div class="kimi-meal-tags">
+                    <span class="kimi-tag category-tag">${meal.category || 'Other'}</span>
+                    ${meal.tags ? meal.tags.slice(0, 2).map(tag => `<span class="kimi-tag">${tag}</span>`).join('') : ''}
+                </div>
+                <h4 class="kimi-meal-name">${meal.name}</h4>
+                <div class="kimi-meal-meta">
+                    <span>⏱️ ${meal.time || meal.prepTime}min</span>
+                    <span>•</span>
+                    <span>🔥 ${meal.calories} kcal</span>
+                </div>
+                <div class="kimi-meal-macros">
+                    <span class="macro-item">${meal.protein}g protein</span>
+                    <span class="macro-item">${meal.carbs}g carbs</span>
+                    <span class="macro-item">${meal.fat}g fat</span>
+                </div>
+                <button class="kimi-add-btn" onclick="event.stopPropagation(); addMealToDay(${meal.id})">+</button>
+            </div>
+        </div>
+    `).join('');
+    
+    container.innerHTML = html || '<p style="color: rgba(255,255,255,0.5); text-align: center; padding: 40px;">No meals found for selected filters</p>';
+};
+
+// Override addMealToDay to allow adding to ANY slot
+window.addMealToDay = function(mealId) {
+    const meal = kimiMealDatabase.find(m => m.id === mealId);
+    if (!meal) return;
+    
+    // If a specific slot was selected, use that
+    if (selectingForSlot) {
+        weekPlan[selectedDayIndex][selectingForSlot] = mealId;
+        selectingForSlot = null;
+    } else {
+        // Otherwise, let user choose or auto-fill first empty slot
+        const dayPlan = weekPlan[selectedDayIndex];
+        const slots = ['breakfast', 'lunch', 'dinner', 'snack'];
+        const emptySlot = slots.find(slot => !dayPlan[slot]);
+        
+        if (emptySlot) {
+            weekPlan[selectedDayIndex][emptySlot] = mealId;
+        } else {
+            // All slots filled, ask user which to replace
+            alert(`All meal slots are filled. Click a meal slot's + button first to choose which meal to replace.`);
+            return;
+        }
+    }
+    
+    renderDayMeals(selectedDayIndex);
+    updatePlannerNutrition();
+    showNotification(`✅ Added ${meal.name}!`, 'success');
+};
+
+// Fix selectMealType to work properly
+window.selectMealType = function(type) {
+    selectingForSlot = type;
+    // Scroll to meal grid
+    const grid = document.getElementById('mealsGrid');
+    if (grid) {
+        grid.scrollIntoView({behavior: 'smooth', block: 'start'});
+    }
+    // Show visual feedback
+    console.log(`Selecting meal for: ${type}`);
+};
+
+// Make closeMealPlanner work properly
+window.closeMealPlanner = function() {
+    const modal = document.getElementById('mealPlannerModal');
+    if (modal) {
+        modal.style.display = 'none';
+        selectingForSlot = null;
+        activeFilters = {cuisine: 'All', dietary: 'All'};
+    }
+};
+
+// Hook into openMealPlanner
+const originalOpenMealPlanner = window.openMealPlanner;
+window.openMealPlanner = function() {
+    if (originalOpenMealPlanner) {
+        originalOpenMealPlanner();
+    }
+    
+    // Reset filters
+    activeFilters = {cuisine: 'All', dietary: 'All'};
+    
+    setTimeout(() => {
+        updateFilterButtons();
+        renderMealsGrid();
+    }, 100);
+};
+
+console.log('✅ Perfect meal planner loaded!');
+console.log('📊 Cuisines:', [...new Set(kimiMealDatabase.map(m => m.category))]);
+console.log('🏷️ Dietary tags:', ['High Protein', 'Quick', 'Vegetarian']);
+console.log('✅ Multi-filter enabled: Select cuisine AND dietary preference');
+console.log('✅ Meals can go to any slot');
+console.log('✅ Cancel button works');
+
+    
+// Update date to current date - runs after page load
+setTimeout(function() {
+    const now = new Date();
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    const dateString = now.toLocaleDateString('en-US', options);
+    
+    // Update header date
+    const dateText = document.getElementById('dateText');
+    if (dateText) {
+        const completedCount = document.querySelectorAll('.task-item.completed').length;
+        const totalCount = document.querySelectorAll('.task-item').length;
+        dateText.textContent = `${dateString} • ${completedCount}/${totalCount} tasks completed`;
+    }
+    
+    // Update widget date if exists
+    const todayDate = document.getElementById('todayDate');
+    if (todayDate) {
+        todayDate.textContent = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    }
+}, 500); // Small delay to ensure DOM is ready
+
+</script>
+</body>
+</html>
